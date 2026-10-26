@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React Tabs - Week 13</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:22px;display:grid;place-items:center;font-family:Arial,sans-serif;color:#f4f8ff;background:radial-gradient(circle at top left,#173f75,#071629 65%)}
+.app{width:min(760px,100%)}.card{overflow:hidden;border-radius:18px;background:#1056a0;box-shadow:0 24px 70px #0005}
+header{padding:30px;background:linear-gradient(120deg,#1689f5,#1763c0)}.tag{color:#c9e5ff;font-size:11px;letter-spacing:2px;font-weight:bold}h1{font-size:clamp(23px,5vw,34px);margin:12px 0}header p{color:#d7eaff;margin-bottom:0}
+nav{display:flex;background:#1477d4;padding:0 18px;gap:5px}nav button{position:relative;flex:1;padding:19px 8px;border:0;color:#d0e7ff;background:transparent;cursor:pointer;font-weight:bold}nav button:hover{background:#ffffff12}nav button.active{color:white;background:#064a91}nav button.active:after{content:"";height:4px;background:#b8f36c;position:absolute;bottom:0;left:12px;right:12px}
+main{padding:32px;min-height:250px}.number{color:#b8f36c;font-size:12px;font-weight:bold}h2{margin:10px 0 20px;font-size:25px}.description{color:#d5e8ff;line-height:1.9}footer{border-top:1px solid #ffffff25;margin-top:30px;padding-top:16px;color:#c3defa;font-size:12px;display:flex;justify-content:space-between;gap:10px}.hint{text-align:center;color:#9cb9dc;font-size:12px}@media(max-width:450px){header,main{padding:23px}nav{padding:0 7px}nav button{font-size:11px}}
+</style>
+</head>
+<body><div id="root">Loading React…</div>
+<script type="module">
+import React,{useState} from "https://esm.sh/react@18.3.1";
+import{createRoot}from"https://esm.sh/react-dom@18.3.1/client";
+const h=React.createElement;
+const tabs=[
+{label:"TAB 1",title:"Welcome to Tab One",text:"This is the first tab. Select another tab to see its content change. Customize this section with your own text."},
+{label:"TAB 2",title:"Explore Tab Two",text:"This is the second tab. Every tab has its own title and content, displayed dynamically using React state."},
+{label:"TAB 3",title:"Discover Tab Three",text:"This is the third tab. The active tab is highlighted, making navigation simple and clear."},
+{label:"TAB 4",title:"Content of Tab Four",text:"This is the fourth tab. Your last selected tab is saved and restored when you return."}];
+function App(){const[active,setActive]=useState(()=>{const s=localStorage.getItem("week13-active-tab");const n=Number(s);return s!==null&&Number.isInteger(n)&&n>=0&&n<tabs.length?n:0});function choose(i){setActive(i);localStorage.setItem("week13-active-tab",String(i))}
+return h("div",{className:"app"},h("section",{className:"card"},h("header",null,h("div",{className:"tag"},"WEEK 13 · REACT PROJECT"),h("h1",null,"React Tabs Component"),h("p",null,"A clean and interactive tab interface")),h("nav",{role:"tablist","aria-label":"Content tabs"},...tabs.map((t,i)=>h("button",{key:t.label,type:"button",role:"tab",id:"tab-"+i,"aria-selected":active===i,"aria-controls":"panel",className:active===i?"active":"",onClick:()=>choose(i)},t.label))),h("main",{id:"panel",role:"tabpanel","aria-labelledby":"tab-"+active},h("div",{className:"number"},"SECTION 0"+(active+1)),h("h2",{key:active},tabs[active].title),h("p",{className:"description"},tabs[active].text),h("footer",null,h("span",null,"● Active: "+tabs[active].label),h("span",null,(active+1)+" / "+tabs.length)))),h("p",{className:"hint"},"Built with React and CSS · No UI libraries"))}
+createRoot(document.getElementById("root")).render(h(React.StrictMode,null,h(App)));
+</script></body></html>
