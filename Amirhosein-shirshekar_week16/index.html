@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پیشنهاد نام شهر</title>
+<style>
+  :root { --pink:#ed4fa4; --pink-light:#fff0f8; --ink:#282333; --muted:#8a8495; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+    font-family:Tahoma, Arial, sans-serif; color:var(--ink);
+    background:radial-gradient(circle at 15% 15%, #fff0f8 0, transparent 35%),
+               linear-gradient(135deg,#fbfaff,#f5f3fa);
+  }
+  .panel { width:min(100%,560px); background:#fff; padding:34px; border:1px solid #f0eaf2;
+           border-radius:22px; box-shadow:0 18px 55px #3d234012; }
+  .eyebrow { color:var(--pink); font-size:12px; font-weight:bold; margin-bottom:10px; }
+  h1 { margin:0 0 10px; font-size:24px; }
+  .desc { color:var(--muted); font-size:13px; line-height:1.9; margin:0 0 24px; }
+  label { display:block; font-size:13px; font-weight:bold; margin-bottom:9px; }
+  .input-wrap { position:relative; }
+  input {
+    width:100%; height:48px; border:1.5px solid var(--pink); border-radius:7px;
+    outline:none; padding:0 14px; font:inherit; direction:ltr; text-align:left;
+    background:white; transition:box-shadow .18s,border-color .18s;
+  }
+  input:focus { box-shadow:0 0 0 4px #ed4fa41c; border-color:#d9368d; }
+  .hint { display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:11px; margin-top:9px; }
+  .suggestions { display:none; list-style:none; padding:6px; margin:8px 0 0; border:1px solid #f0e4ed;
+    border-radius:10px; box-shadow:0 10px 24px #3120340d; max-height:220px; overflow:auto; }
+  .suggestions.show { display:block; }
+  .suggestions li { padding:11px 12px; border-radius:7px; cursor:pointer; display:flex; justify-content:space-between;
+    align-items:center; direction:ltr; text-align:left; font-size:14px; }
+  .suggestions li:hover,.suggestions li.active { background:var(--pink-light); color:#b92778; }
+  .suggestions small { color:#aaa1b0; font-size:10px; }
+  .status { min-height:24px; font-size:12px; margin-top:12px; color:#6e6878; }
+  .status.success { color:#21865c; } .status.error { color:#c14d65; }
+  .selected { margin-top:20px; padding:12px 14px; border-radius:10px; background:#f8f6fb; font-size:13px; display:none; }
+  .selected.visible { display:block; } .selected strong { color:#b92778; direction:ltr; display:inline-block; }
+  @media(max-width:480px){ .panel{padding:24px 20px;} h1{font-size:21px;} }
+</style>
+</head>
+<body>
+<main class="panel">
+  <div class="eyebrow">مینی‌پروژه · هفته شانزدهم</div>
+  <h1>شهر مورد نظرت رو پیدا کن</h1>
+  <p class="desc">نام شهر را به انگلیسی وارد کن. با هر حرف، نزدیک‌ترین پیشنهادها نمایش داده می‌شوند. جست‌وجو به بزرگی و کوچکی حروف حساس است.</p>
+
+  <label for="cityInput">نام شهر</label>
+  <div class="input-wrap">
+    <input id="cityInput" type="text" autocomplete="off" spellcheck="false"
+      placeholder="مثلاً Tehran یا New York" aria-autocomplete="list" aria-controls="suggestions">
+  </div>
+  <ul id="suggestions" class="suggestions" role="listbox"></ul>
+  <div class="hint"><span>برای انتخاب از ↑ ↓ و Enter استفاده کن</span><span id="count">۰ پیشنهاد</span></div>
+  <div id="status" class="status" aria-live="polite"></div>
+  <div id="selected" class="selected">شهر انتخاب‌شده: <strong id="selectedName"></strong></div>
+</main>
+<script>
+const cities = [
+  "Amsterdam","Athens","Atlanta","Austin","Barcelona","Berlin","Boston","Cairo","Chicago",
+  "Dallas","Delhi","Dubai","Dublin","Edinburgh","Florence","Istanbul","Jakarta","Kabul",
+  "Karachi","Kyoto","London","Los Angeles","Madrid","Manchester","Melbourne","Mexico City",
+  "Miami","Milan","Montreal","Moscow","Mumbai","New York","Osaka","Paris","Prague",
+  "Rome","San Francisco","Seoul","Shanghai","Singapore","Sydney","Tehran","Tokyo","Toronto",
+  "Vancouver","Vienna","Warsaw","Washington"
+];
+
+const input = document.querySelector("#cityInput");
+const list = document.querySelector("#suggestions");
+const status = document.querySelector("#status");
+const count = document.querySelector("#count");
+const selected = document.querySelector("#selected");
+const selectedName = document.querySelector("#selectedName");
+let matches = [];
+let activeIndex = -1;
+
+function editDistance(a, b) {
+  const dp = Array.from({length:b.length+1}, (_,i)=>i);
+  for (let i=1;i<=a.length;i++) {
+    let diagonal = dp[0]; dp[0] = i;
+    for (let j=1;j<=b.length;j++) {
+      const above = dp[j];
+      dp[j] = Math.min(dp[j]+1, dp[j-1]+1, diagonal+(a[i-1]===b[j-1]?0:1));
+      diagonal = above;
+    }
+  }
+  return dp[b.length];
+}
+
+function render() {
+  const query = input.value;
+  list.innerHTML = "";
+  activeIndex = -1;
+  selected.classList.remove("visible");
+  if (!query) {
+    list.classList.remove("show");
+    count.textContent = "۰ پیشنهاد";
+    status.textContent = "شروع به تایپ کن تا شهرها را ببینی.";
+    status.className = "status";
+    return;
+  }
+
+  // Case-sensitive prefix matches first, then fuzzy spelling matches.
+  const prefix = cities.filter(city => city.startsWith(query));
+  const fuzzy = cities.filter(city => !city.startsWith(query) && editDistance(query, city) <= Math.max(1, Math.floor(query.length/3)));
+  matches = [...prefix, ...fuzzy].slice(0, 8);
+
+  count.textContent = `${matches.length} پیشنهاد`;
+  if (!matches.length) {
+    list.classList.remove("show");
+    status.textContent = "شهری با این املا پیدا نشد.";
+    status.className = "status error";
+    return;
+  }
+  matches.forEach((city, i) => {
+    const li = document.createElement("li");
+    li.setAttribute("role","option");
+    li.innerHTML = `<span>${city}</span><small>${i===0 && city.startsWith(query) ? "پیشنهاد نزدیک" : "پیشنهاد"}</small>`;
+    li.addEventListener("mousedown", e => { e.preventDefault(); choose(city); });
+    list.appendChild(li);
+  });
+  list.classList.add("show");
+  status.textContent = "برای انتخاب، روی شهر کلیک کن یا Enter بزن.";
+  status.className = "status";
+}
+
+function choose(city) {
+  input.value = city;
+  list.classList.remove("show");
+  status.textContent = "شهر با موفقیت انتخاب شد.";
+  status.className = "status success";
+  selectedName.textContent = city;
+  selected.classList.add("visible");
+  count.textContent = "۱ شهر انتخاب‌شده";
+}
+input.addEventListener("input", render);
+input.addEventListener("keydown", e => {
+  if (!matches.length || !list.classList.contains("show")) return;
+  if (e.key === "ArrowDown") { e.preventDefault(); activeIndex = (activeIndex+1)%matches.length; }
+  else if (e.key === "ArrowUp") { e.preventDefault(); activeIndex = (activeIndex-1+matches.length)%matches.length; }
+  else if (e.key === "Enter" && activeIndex >= 0) { e.preventDefault(); choose(matches[activeIndex]); return; }
+  else if (e.key === "Escape") { list.classList.remove("show"); return; }
+  [...list.children].forEach((li,i)=>li.classList.toggle("active",i===activeIndex));
+});
+document.addEventListener("click", e => { if (!e.target.closest(".panel")) list.classList.remove("show"); });
+render();
+</script>
+</body>
+</html>
