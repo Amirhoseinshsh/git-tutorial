@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>پیشنهاد نام شهر</title>
+<style>
+:root{--bg:#fff;--fg:#1f2330;--muted:#757a8a;--line:#e3e5ec;--accent:#e8559a;--hl:#fde6f1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171e;--fg:#eceef5;--muted:#9aa0b3;--line:#2b2f3b;--hl:#3a2030}}
+:root[data-theme="dark"]{--bg:#15171e;--fg:#eceef5;--muted:#9aa0b3;--line:#2b2f3b;--hl:#3a2030}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Vazirmatn,Tahoma,system-ui,sans-serif;display:flex;justify-content:center;padding:48px 16px}
+.wrap{width:100%;max-width:420px}
+h1{font-size:18px;margin:0 0 6px}
+p.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.box{position:relative;direction:ltr}
+.ghost,input{width:100%;font:18px/1.2 system-ui,sans-serif;padding:12px 14px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--fg);outline:none}
+input{position:relative;z-index:1}
+.ghost{position:absolute;inset:0;border-color:transparent;color:var(--muted);white-space:pre;overflow:hidden;pointer-events:none}
+.ghost b{visibility:hidden;font-weight:normal}
+ul{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;direction:ltr}
+ul:empty{display:none}
+li{padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;font-size:16px}
+li.on,li:hover{background:var(--hl)}
+li small{color:var(--muted);font-size:12px}
+li mark{background:none;color:var(--accent);font-weight:bold}
+.hint{color:var(--muted);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ورودی هوشمند نام شهر</h1>
+  <p class="sub">حروف را تایپ کنید؛ نزدیک‌ترین شهر پیشنهاد می‌شود (حساس به بزرگی و کوچکی حروف).</p>
+  <div class="box">
+    <div class="ghost" id="ghost"></div>
+    <input id="q" autocomplete="off" spellcheck="false" autofocus>
+  </div>
+  <ul id="list"></ul>
+  <div class="hint">↑ ↓ برای انتخاب · Tab یا Enter برای پذیرش</div>
+</div>
+<script>
+const CITIES=["Tehran","Tabriz","Shiraz","Isfahan","Mashhad","Ahvaz","Qom","Kerman","Karaj","Rasht","Yazd","Urmia","Zanjan","Hamadan","Arak","Ardabil","Bandar Abbas","Bushehr","Birjand","Gorgan","Ilam","Kermanshah","Sanandaj","Semnan","Sari","Zahedan","Khorramabad","Yasuj","Shahrekord","Bojnord","London","Lisbon","Paris","Berlin","Madrid","Rome","Tokyo","Toronto","New York","Istanbul","Dubai","Doha","Delhi","Cairo","Sydney"];
+const q=document.getElementById('q'),list=document.getElementById('list'),ghost=document.getElementById('ghost');
+let items=[],sel=0;
+
+function lev(a,b){ // فاصله ویرایشی (حساس به حروف)
+  const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i]);
+  for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+function rank(v){
+  return CITIES.map(c=>({c,d:lev(v,c.slice(0,v.length))}))
+    .sort((x,y)=>x.d-y.d||x.c.length-y.c.length||x.c.localeCompare(y.c))
+    .slice(0,5);
+}
+function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+function render(){
+  const v=q.value;
+  items=v?rank(v):[];
+  if(sel>=items.length)sel=0;
+  list.innerHTML=items.map((it,i)=>{
+    const k=it.c.startsWith(v)?v.length:0;
+    return `<li class="${i===sel?'on':''}" data-i="${i}"><span><mark>${esc(it.c.slice(0,k))}</mark>${esc(it.c.slice(k))}</span><small>${it.d===0?'':'فاصله '+it.d}</small></li>`;
+  }).join('');
+  const top=items[sel];
+  ghost.innerHTML=top&&top.c.startsWith(v)?`<b>${esc(v)}</b>${esc(top.c.slice(v.length))}`:'';
+}
+function accept(i){if(items[i]){q.value=items[i].c;sel=0;render();list.innerHTML='';ghost.innerHTML='';}}
+q.addEventListener('input',()=>{sel=0;render()});
+q.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();sel=(sel+1)%Math.max(items.length,1);render()}
+  else if(e.key==='ArrowUp'){e.preventDefault();sel=(sel-1+items.length)%Math.max(items.length,1);render()}
+  else if(e.key==='Tab'||e.key==='Enter'){if(items.length&&q.value){e.preventDefault();accept(sel)}}
+  else if(e.key==='Escape'){list.innerHTML='';ghost.innerHTML=''}
+});
+list.addEventListener('mousedown',e=>{const li=e.target.closest('li');if(li){e.preventDefault();accept(+li.dataset.i)}});
+</script>
+</body>
+</html>
