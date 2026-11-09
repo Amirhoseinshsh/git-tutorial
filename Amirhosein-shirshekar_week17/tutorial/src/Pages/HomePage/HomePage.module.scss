@@ -1,0 +1,17 @@
+@import "../../utility/styles/colors.scss";
+
+.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.add { background: $primary; color: #fff; padding: 8px 16px; border-radius: 8px; }
+.bulk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  span { flex: 1; font-size: 14px; }
+  button { padding: 6px 12px; border: none; border-radius: 6px; background: $danger; color: #fff;
+    &:last-child { background: $border; color: $text; } }
+}
+.selectAll { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 4px 12px; color: $muted; }

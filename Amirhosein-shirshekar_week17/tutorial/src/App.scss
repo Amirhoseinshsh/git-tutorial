@@ -1,0 +1,9 @@
+@import "./utility/styles/colors.scss";
+
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  &__header { padding: 16px 0; color: $primary; }
+  &__main { background: $card; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); }
+}

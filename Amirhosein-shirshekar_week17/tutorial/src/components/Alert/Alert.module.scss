@@ -1,0 +1,14 @@
+@import "../../utility/styles/colors.scss";
+
+.alert {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: #fff;
+  z-index: 100;
+}
+.success { background: $success; }
+.error { background: $danger; }

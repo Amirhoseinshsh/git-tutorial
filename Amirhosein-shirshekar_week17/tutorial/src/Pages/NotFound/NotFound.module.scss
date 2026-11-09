@@ -1,0 +1,8 @@
+@import "../../utility/styles/colors.scss";
+
+.notFound {
+  text-align: center;
+  padding: 40px 0;
+  h2 { font-size: 48px; color: $primary; }
+  a { color: $primary; display: inline-block; margin-top: 12px; }
+}

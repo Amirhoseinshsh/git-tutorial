@@ -1,0 +1,32 @@
+@import "../../utility/styles/colors.scss";
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid $border;
+  list-style: none;
+}
+.selected { background: #eef2ff; }
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.info {
+  flex: 1;
+  p { color: $muted; font-size: 13px; margin-top: 2px; }
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  a { color: $primary; }
+  button { background: none; border: none; color: $danger; }
+}

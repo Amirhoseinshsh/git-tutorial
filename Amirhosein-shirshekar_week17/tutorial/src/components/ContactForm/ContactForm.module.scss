@@ -1,0 +1,14 @@
+@import "../../utility/styles/colors.scss";
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+  input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; }
+  button { padding: 10px; background: $primary; color: #fff; border: none; border-radius: 8px;
+    &:hover { background: $primary-dark; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; } }
+}
+.invalid { border-color: $danger !important; }
+.error { color: $danger; font-size: 12px; }
